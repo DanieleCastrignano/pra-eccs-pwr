@@ -24,9 +24,9 @@ Quantify the failure probability of the ECCS under a simplified accident scenari
 | Event | Probability |
 |-------|-------------|
 | Single pump failure | 0.02 |
-| Diesel failure | 0.01 |
+| Diesel failure | 0.1 |
 | Both pumps failure | 0.0004 |
-| **ECCS failure** | **0.0021** |
+| **ECCS failure** | **0.1004** |
 
 ![ECCS Failure Probabilities](results.png)
 
