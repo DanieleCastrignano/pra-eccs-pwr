@@ -6,32 +6,82 @@ Scenario:
 - 1 diesel generator (backup power)
 - System fails if BOTH pumps fail OR diesel fails when needed.
 
-Data (illustrative, from public reliability databases):
-- Pump failure probability: 0.01 per demand
-- Diesel failure probability: 0.005 per demand
+Author: Daniele Castrignano
+Date: 2026
 """
 
-# Probabilities (per demand)
-P_pump_fail = 0.01
-P_diesel_fail = 0.005
+# ============================================================
+# INPUT VALIDATION
+# ============================================================
+def get_probability(prompt: str) -> float:
+    """
+    Ask the user for a probability value and validate it.
 
-# Fault Tree Logic
-# Top Event: ECCS fails
-# OR gate: (Pump A fails AND Pump B fails) OR (Diesel fails)
+    Args:
+        prompt: the message shown to the user
+    Returns:
+        A float between 0 and 1
+    """
+    while True:
+        try:
+            value = float(input(prompt))
+            if 0 <= value <= 1:
+                return value
+            else:
+                print("  ⚠️  The value must be between 0 and 1. Try again.")
+        except ValueError:
+            print("  ⚠️  Invalid input. Please enter a number (e.g. 0.01).")
 
-# Probability that both pumps fail (AND gate)
-P_both_pumps_fail = P_pump_fail * P_pump_fail
 
-# Probability of top event (OR gate)
-P_eccs_fail = P_both_pumps_fail + P_diesel_fail - (P_both_pumps_fail * P_diesel_fail)
+# ============================================================
+# FAULT TREE LOGIC
+# ============================================================
+def probability_both_pumps_fail(p_pump: float) -> float:
+    """
+    AND gate: both redundant pumps must fail.
+    """
+    return p_pump ** 2
 
-# Results
-print("=" * 50)
-print("FAULT TREE ANALYSIS - ECCS")
-print("=" * 50)
-print(f"Pump failure probability (each): {P_pump_fail}")
-print(f"Diesel failure probability:      {P_diesel_fail}")
-print("-" * 50)
-print(f"P(both pumps fail):              {P_both_pumps_fail:.6f}")
-print(f"P(ECCS fails):                   {P_eccs_fail:.6f}")
-print("=" * 50)
+
+def probability_eccs_fail(p_pump: float, p_diesel: float) -> float:
+    """
+    OR gate: ECCS fails if both pumps fail OR diesel fails.
+
+    Inclusion-exclusion principle:
+        P(A ∪ B) = P(A) + P(B) - P(A ∩ B)
+    """
+    p_both_pumps = probability_both_pumps_fail(p_pump)
+    return p_both_pumps + p_diesel - (p_both_pumps * p_diesel)
+
+
+# ============================================================
+# MAIN
+# ============================================================
+def main():
+    print("=" * 55)
+    print("   ECCS FAULT TREE ANALYSIS - Interactive Tool")
+    print("=" * 55)
+    print("Enter the failure probabilities (values between 0 and 1).")
+    print("Example: 0.01 for 1% failure probability.\n")
+
+    # Ask the user for inputs
+    p_pump = get_probability("→ Single pump failure probability:   ")
+    p_diesel = get_probability("→ Diesel generator failure prob.:    ")
+
+    # Compute results
+    p_both_pumps = probability_both_pumps_fail(p_pump)
+    p_eccs = probability_eccs_fail(p_pump, p_diesel)
+
+    # Display results
+    print("\n" + "=" * 55)
+    print("   RESULTS")
+    print("=" * 55)
+    print(f"  Single pump failure:        {p_pump:.6f}")
+    print(f"  Diesel failure:             {p_diesel:.6f}")
+    print(f"  Both pumps failure:         {p_both_pumps:.6f}")
+    print(f"  → ECCS failure probability: {p_eccs:.6f}")
+    print("=" * 55)
+
+
+if __name__ == "__main__":
+    main()
