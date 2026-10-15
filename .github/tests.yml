@@ -1,3 +1,4 @@
+# CI workflow for ECCS fault tree analysis
 name: Run Tests
 
 on:
