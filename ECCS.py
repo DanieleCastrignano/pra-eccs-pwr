@@ -10,6 +10,9 @@ Author: Daniele Castrignano
 Date: 2026
 """
 
+import matplotlib.pyplot as plt
+
+
 # ============================================================
 # INPUT VALIDATION
 # ============================================================
@@ -37,9 +40,7 @@ def get_probability(prompt: str) -> float:
 # FAULT TREE LOGIC
 # ============================================================
 def probability_both_pumps_fail(p_pump: float) -> float:
-    """
-    AND gate: both redundant pumps must fail.
-    """
+    """AND gate: both redundant pumps must fail."""
     return p_pump ** 2
 
 
@@ -52,6 +53,41 @@ def probability_eccs_fail(p_pump: float, p_diesel: float) -> float:
     """
     p_both_pumps = probability_both_pumps_fail(p_pump)
     return p_both_pumps + p_diesel - (p_both_pumps * p_diesel)
+
+
+# ============================================================
+# VISUALIZATION
+# ============================================================
+def plot_results(p_pump: float, p_diesel: float, p_both: float, p_eccs: float):
+    """
+    Generate a bar chart of the failure probabilities and save it as results.png.
+    """
+    events = ["Single pump\nfailure", "Diesel\nfailure", "Both pumps\nfailure", "ECCS\nfailure"]
+    probabilities = [p_pump, p_diesel, p_both, p_eccs]
+    colors = ["#4C72B0", "#4C72B0", "#DD8452", "#C44E52"]
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    bars = ax.bar(events, probabilities, color=colors)
+
+    # Add value labels on top of bars
+    for bar, prob in zip(bars, probabilities):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + max(probabilities) * 0.02,
+            f"{prob:.4f}",
+            ha="center",
+            fontsize=10,
+        )
+
+    ax.set_ylabel("Failure Probability")
+    ax.set_title("ECCS Fault Tree – Failure Probabilities")
+    ax.grid(axis="y", linestyle="--", alpha=0.6)
+    ax.set_ylim(0, max(probabilities) * 1.25)
+
+    plt.tight_layout()
+    plt.savefig("results.png", dpi=150)
+    print("\n📊 Chart saved as 'results.png'")
+    plt.show()
 
 
 # ============================================================
@@ -81,6 +117,9 @@ def main():
     print(f"  Both pumps failure:         {p_both_pumps:.6f}")
     print(f"  → ECCS failure probability: {p_eccs:.6f}")
     print("=" * 55)
+
+    # Generate chart
+    plot_results(p_pump, p_diesel, p_both_pumps, p_eccs)
 
 
 if __name__ == "__main__":
